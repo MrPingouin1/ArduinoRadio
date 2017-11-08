@@ -2,11 +2,11 @@
 #define DEF_MESSAGE
 
 class Message{
-    public:
-        static char radiopacket[65];
-        static unsigned char radioPacketLen;
-        
-        void printMessage();
+	public:
+		static char contenu[65];
+		static unsigned char longueur;
+    
+		void printMessage();
 };    
 
-#endif
+#endif     
