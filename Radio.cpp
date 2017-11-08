@@ -25,7 +25,7 @@ RFM69 Radio::radio = RFM69(RFM69_CS, RFM69_IRQ, IS_RFM69HCW, RFM69_IRQN);
 void Radio::start(int nodeid){
   //Start
   Serial.begin(SERIAL_BAUD);
-  Serial.println("Uart init done. Starting Init.");
+  Serial.println("Starting Init...");
   
   // Hard Reset the RFM module
   pinMode(RFM69_RST, OUTPUT);
