@@ -16,6 +16,7 @@
 #define RFM69_IRQN 4
 
 #define NETWORKID 17
+#define MASTER_ID 1
 #define FREQUENCY RF69_433MHZ // RF69_868MHZ RF69_915MHZ
 #define ENCRYPTKEY "sampleEncryptKey"
 
@@ -70,15 +71,17 @@ void Radio::sendMessage (Message message,int receiver){
     Serial.print("FAIL > ");        
   }
   blinkLED(LED, 40,1);
+  Serial.print("Message envoyé à ");
+  Serial.println(receiver);
+  message.printMessage();
 }
 
 
-bool Radio::receiveMessage (int *sender, Message *message){
-  sender = 0;
-  bool ret = radio.receiveDone();
-  if (ret)
+uint8_t Radio::receiveMessage (Message *message){
+  
+  uint8_t sender = 0;
+  if (radio.receiveDone())
   {
-    
     sender = radio.SENDERID;
     for (int i=0; i< radio.DATALEN -1; i++){
       message->contenu[i] = radio.DATA[i];
@@ -95,8 +98,38 @@ bool Radio::receiveMessage (int *sender, Message *message){
     {
       Serial.println("NO ACK"); 
     }
-    blinkLED(LED, 40, 3);  
+    blinkLED(LED, 40, 3);    
+    Serial.print("Message reçu de ");
+    Serial.print(sender);
+    message->printMessage();  
   } 
-  return ret;
+  return sender;
+}
+
+bool Radio::chercherMaitre(){
+  int loopCounter = 0;
+  int sender;
+
+  Message message= Message();
+  message.contenu[0] = 118;
+  message.contenu[1] = 218;
+  message.longueur = 2;
+  sendMessage(message, MASTER_ID);
+
+  while (loopCounter < 2000){
+    sender = receiveMessage(&message);
+    if (sender == 1 && message.longueur == 2){
+      if (message.contenu[0] == 1){
+        radio.setAddress(message.contenu[1]);
+        return true;
+      }
+      else
+        exit(0);
+    }
+    loopCounter ++;
+    delay(1);
+  }
+  radio.setAddress(MASTER_ID);
+  return false;
 }
 
