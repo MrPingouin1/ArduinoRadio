@@ -1,51 +1,15 @@
 #include <Message.h>
-#include <Arduino.h>
-
-#include <RFM69.h>
-#include <SPI.h>
+#include <Arduino.h> 
 
 char Message::radiopacket[65];
 unsigned char Message::radioPacketLen;
-RFM69* Message::radio;
-
-void Message::setRadio(RFM69* r){
-	radio=r;
-}
-		
+        
 void Message::printMessage(){
-	Serial.print("Message : ["); 
-	for (int i=0; i< radioPacketLen; i++)
-	{
-		Serial.print((unsigned char) radiopacket[i], DEC); 
-		Serial.print(",");
-	}
-	Serial.println("]");
-}
-
-void Message::sendMessage (int receiver){
-	Serial.println(radio->getFrequency());
-  if (radio->sendWithRetry(receiver, radiopacket, radioPacketLen)) 
-  { 
-    Serial.print("OK > ");
-  }
-  else
-  {
-    Serial.print("FAIL > ");        
-  }
-}
-
-void Message::receiveMessage (){
-  if (radio->receiveDone())
-  {    
-    Serial.print(F("Received Frame "));
-    if (radio->ACKRequested())
+    Serial.print("Message : "); 
+    for (int i=0; i< radioPacketLen; i++)
     {
-      radio->sendACK();
-      Serial.println("Sending ACK");
+        Serial.print((unsigned char) radiopacket[i], DEC); 
+        Serial.print(",");
     }
-    else 
-    {
-      Serial.println("NO ACK"); 
-    }
-  }  
+    Serial.println("]");
 }
