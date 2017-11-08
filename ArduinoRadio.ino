@@ -58,9 +58,7 @@ void loop() {
     sender = radio.receiveMessage(&message);
     if(sender>0)
     {
-      Serial.println("Message reçu");
       if(radio.isJoinRequest(message)){
-        Serial.println("Join request reçue");
         message.contenu[0] = 1;
         message.contenu[1] = nbEsclaves + 11; 
         message.longueur = 2;
