@@ -14,8 +14,9 @@ void setup() {
   while (!Serial);
   radio.start(NODEID);
   isMaster = !radio.chercherMaitre();
-  if(isMaster)
+  if(isMaster){
     Serial.println("I'm the boss!!! bitch!");
+  }
   else
     Serial.println("I'm your bitch, mr boss");
 }
@@ -50,14 +51,23 @@ void loop() {
       radio.sendMessage(message, 1);
     }    
   }
-  else{
+  else{    
+    static int listeEsclaves[10];
+    static int nbEsclaves = 0;
+    
     sender = radio.receiveMessage(&message);
     if(sender>0)
     {
-      message.contenu[0] = 1;
-      message.contenu[1] = 11; 
-      message.longueur = 2;  
-      radio.sendMessage(message, sender);
+      Serial.println("Message reçu");
+      if(radio.isJoinRequest(message)){
+        Serial.println("Join request reçue");
+        message.contenu[0] = 1;
+        message.contenu[1] = nbEsclaves + 11; 
+        message.longueur = 2;
+        radio.sendMessage(message, sender);
+        listeEsclaves[nbEsclaves]=nbEsclaves + 11;
+        nbEsclaves++;
+      }      
     }
   }
 

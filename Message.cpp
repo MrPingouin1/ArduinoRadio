@@ -6,10 +6,11 @@ unsigned char Message::longueur;
 
 void Message::printMessage(){
 	Serial.print("-> Message : ["); 
-	for (int i=0; i< longueur; i++)
+	for (int i=0; i< longueur -1; i++)
 	{
 		Serial.print((unsigned char) contenu[i], DEC); 
 		Serial.print(",");
 	}
+  Serial.print((unsigned char) contenu[longueur -1], DEC);
 	Serial.println("]");
 }
