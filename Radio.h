@@ -15,6 +15,7 @@ class Radio{
     void sendMessage(Message message, int receiver);
     uint8_t receiveMessage(Message *message);
     int readTemperature();
+    bool isJoinRequest(Message message);
 };    
 
 #endif    

@@ -88,16 +88,9 @@ uint8_t Radio::receiveMessage (Message *message){
     }
     message->longueur = radio.DATALEN;
     
-    Serial.print(F("Received Frame "));
     if (radio.ACKRequested())
-    {
       radio.sendACK();
-      Serial.println("Sending ACK");
-    }
-    else 
-    {
-      Serial.println("NO ACK"); 
-    }
+    
     blinkLED(LED, 40, 3);    
     Serial.print("Message reçu de ");
     Serial.print(sender);
@@ -131,5 +124,9 @@ bool Radio::chercherMaitre(){
   }
   radio.setAddress(MASTER_ID);
   return false;
+}
+
+bool Radio::isJoinRequest(Message message){
+  return (message.longueur == 2) && (message.contenu[0] == (char) 118) && (message.contenu[1] == (char) 218);  
 }
 
