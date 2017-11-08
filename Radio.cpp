@@ -61,8 +61,9 @@ int Radio::readTemperature(){
   return (int) radio.readTemperature(4);
 }
 
-void Radio::sendMessage (Message message,int receiver){
-  if (radio.sendWithRetry(receiver, message.contenu, message.longueur)) 
+bool Radio::sendMessage (Message message,int receiver){
+  bool succes = radio.sendWithRetry(receiver, message.contenu, message.longueur);
+  if (succes) 
   { 
     Serial.print("OK > ");
   }
@@ -74,6 +75,7 @@ void Radio::sendMessage (Message message,int receiver){
   Serial.print("Message envoyé à ");
   Serial.println(receiver);
   message.printMessage();
+  return succes;
 }
 
 
@@ -107,23 +109,23 @@ bool Radio::chercherMaitre(){
   message.contenu[0] = 118;
   message.contenu[1] = 218;
   message.longueur = 2;
-  sendMessage(message, MASTER_ID);
-
-  while (loopCounter < 2000){
-    sender = receiveMessage(&message);
-    if (sender == 1 && message.longueur == 2){
-      if (message.contenu[0] == (char) 1){
+  if (sendMessage(message, MASTER_ID)){
+    while (loopCounter < 2000){
+      sender = receiveMessage(&message);
+      if (sender == 1 && message.longueur == 2 && message.contenu[0] == (char) 1){
+        message.printMessage();
         radio.setAddress(message.contenu[1]);
         return true;
       }
-      else
-        exit(0);
+      loopCounter ++;
+      delay(1);
     }
-    loopCounter ++;
-    delay(1);
+    exit(0);
   }
-  radio.setAddress(MASTER_ID);
-  return false;
+  else{    
+    radio.setAddress(MASTER_ID);
+    return false;
+  }
 }
 
 bool Radio::isJoinRequest(Message message){

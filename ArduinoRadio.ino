@@ -27,28 +27,26 @@ void loop() {
   static int sender;
   
   if(!isMaster){
+    static int nbErreurs = 0;
+    
     if (loopCounter > 2000)
     {
       packetnum ++; 
       loopCounter= 0;
     
       // On construit une trame arbitraire pour test
-      message.contenu[0] = 01;
+      message.contenu[0] = 25;
       message.contenu[1] = radio.readTemperature(); 
-      message.contenu[2] = packetnum >> 8;  // Les poids forts
-      message.contenu[3] = packetnum ;      // Les poids faibles
-      message.contenu[4] = 00;
-      message.contenu[5] = 255;
-    
-      message.contenu[6] = 11;
-      message.contenu[7] = 22;
-      message.contenu[8] = 33;
-      message.contenu[9] = 0;
-      message.contenu[10] = 0;
-      message.contenu[11] = 0;
-      message.longueur = 15;
+      message.longueur = 2;
   
-      radio.sendMessage(message, 1);
+      if (!radio.sendMessage(message, 1)){
+        if (nbErreurs > 3){
+          isMaster = !radio.chercherMaitre();
+        }
+        nbErreurs ++;
+      }
+      else
+        nbErreurs = 0;
     }    
   }
   else{    
@@ -58,13 +56,18 @@ void loop() {
     sender = radio.receiveMessage(&message);
     if(sender>0)
     {
-      if(radio.isJoinRequest(message)){
-        message.contenu[0] = 1;
-        message.contenu[1] = nbEsclaves + 11; 
-        message.longueur = 2;
-        radio.sendMessage(message, sender);
-        listeEsclaves[nbEsclaves]=nbEsclaves + 11;
-        nbEsclaves++;
+      if(sender not in && liste n'est full){        
+        if(radio.isJoinRequest(message)){
+          message.contenu[0] = 1;
+          message.contenu[1] = nbEsclaves + 11; 
+          message.longueur = 2;
+          radio.sendMessage(message, sender);
+          listeEsclaves[nbEsclaves]=nbEsclaves + 11;
+          nbEsclaves++;
+        }
+      }
+      else{
+        // je suis pas ton pote
       }      
     }
   }

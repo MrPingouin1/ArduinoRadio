@@ -12,7 +12,7 @@ class Radio{
     bool chercherMaitre();
     void printMessage();
     void blinkLED(byte PIN, byte DELAY_MS, byte loops);
-    void sendMessage(Message message, int receiver);
+    bool sendMessage(Message message, int receiver);
     uint8_t receiveMessage(Message *message);
     int readTemperature();
     bool isJoinRequest(Message message);
