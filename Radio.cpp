@@ -83,7 +83,7 @@ uint8_t Radio::receiveMessage (Message *message){
   if (radio.receiveDone())
   {
     sender = radio.SENDERID;
-    for (int i=0; i< radio.DATALEN -1; i++){
+    for (int i=0; i< radio.DATALEN; i++){
       message->contenu[i] = radio.DATA[i];
     }
     message->longueur = radio.DATALEN;
@@ -112,7 +112,7 @@ bool Radio::chercherMaitre(){
   while (loopCounter < 2000){
     sender = receiveMessage(&message);
     if (sender == 1 && message.longueur == 2){
-      if (message.contenu[0] == 1){
+      if (message.contenu[0] == (char) 1){
         radio.setAddress(message.contenu[1]);
         return true;
       }
