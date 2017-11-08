@@ -30,7 +30,9 @@ void Radio::start(){
   // Hard Reset the RFM module
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, HIGH);
+  delay(100);
   digitalWrite(RFM69_RST, LOW);
+  delay(100);
     
   radio.initialize(FREQUENCY,NODEID,NETWORKID); 
   if (IS_RFM69HCW)
