@@ -12,7 +12,7 @@ void Message::printMessage(){
 		Serial.print(",");
 	}
   Serial.print((unsigned char) contenu[longueur -1], DEC);
-	Serial.println("]");
+	Serial.print("]");
 }
 
 void Message::joinRequest(){
