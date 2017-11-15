@@ -7,8 +7,9 @@
 class Radio{
   private:
     static RFM69 radio;
+    
   public:
-    void start(int nodeid);
+    void start();
     bool chercherMaitre();
     void printMessage();
     void blinkLED(byte PIN, byte DELAY_MS, byte loops);
@@ -16,6 +17,9 @@ class Radio{
     uint8_t receiveMessage(Message *message);
     int readTemperature();
     bool isJoinRequest(Message message);
+    
+    bool slaveLoop();
+    void masterLoop();
 };    
 
 #endif    

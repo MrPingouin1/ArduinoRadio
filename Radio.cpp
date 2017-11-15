@@ -10,19 +10,27 @@
 #define RFM69_RST 4
 #define LED 13
 
+//UNKNOWN
 #define RFM69_CS 8
 #define RFM69_IRQ 7
 #define IS_RFM69HCW true
 #define RFM69_IRQN 4
 
+// NETWORK
 #define NETWORKID 17
 #define MASTER_ID 1
 #define FREQUENCY RF69_433MHZ // RF69_868MHZ RF69_915MHZ
 #define ENCRYPTKEY "sampleEncryptKey"
 
-RFM69 Radio::radio = RFM69(RFM69_CS, RFM69_IRQ, IS_RFM69HCW, RFM69_IRQN);
+// THIS NODE
+#define FIRST_SLAVE_ID 11
+#define NUMBER_MAX_SLAVES 10
+#define NODEID FIRST_SLAVE_ID + NUMBER_MAX_SLAVES
 
-void Radio::start(int nodeid){
+RFM69 Radio::radio = RFM69(RFM69_CS, RFM69_IRQ, IS_RFM69HCW, RFM69_IRQN);
+Message message= Message();
+
+void Radio::start(){
   //Start
   Serial.begin(SERIAL_BAUD);
   Serial.println("Starting Init...");
@@ -34,7 +42,7 @@ void Radio::start(int nodeid){
   digitalWrite(RFM69_RST, LOW);
   delay(100);
     
-  radio.initialize(FREQUENCY,nodeid,NETWORKID); 
+  radio.initialize(FREQUENCY,NODEID,NETWORKID); 
   if (IS_RFM69HCW)
     radio.setHighPower(); // Only for RFM69HCW & HW!    
   radio.setPowerLevel(31); // power output ranges from 0 (5dBm) to 31 (20dBm)
@@ -71,10 +79,11 @@ bool Radio::sendMessage (Message message,int receiver){
   {
     Serial.print("FAIL > ");        
   }
-  blinkLED(LED, 40,1);
-  Serial.print("Message envoyé à ");
-  Serial.println(receiver);
+  blinkLED(LED, 40,1);  
+  Serial.print("Message ");
   message.printMessage();
+  Serial.print(" envoyé à ");
+  Serial.println(receiver);
   return succes;
 }
 
@@ -93,10 +102,11 @@ uint8_t Radio::receiveMessage (Message *message){
     if (radio.ACKRequested())
       radio.sendACK();
     
-    blinkLED(LED, 40, 3);    
-    Serial.print("Message reçu de ");
-    Serial.print(sender);
-    message->printMessage();  
+    blinkLED(LED, 40, 3);     
+    Serial.print("Message ");
+    message->printMessage();   
+    Serial.print(" reçu de ");
+    Serial.print(sender);  
   } 
   return sender;
 }
@@ -105,21 +115,19 @@ bool Radio::chercherMaitre(){
   int loopCounter = 0;
   int sender;
 
-  Message message= Message();
-  message.contenu[0] = 118;
-  message.contenu[1] = 218;
-  message.longueur = 2;
+  message.joinRequest();
+  
   if (sendMessage(message, MASTER_ID)){
     while (loopCounter < 2000){
       sender = receiveMessage(&message);
-      if (sender == 1 && message.longueur == 2){
-        if (message.contenu[0] == (char) 1){
+      if (sender == 1){
+        if (message.isjoinResponseOK()){
           message.printMessage();
-          radio.setAddress(message.contenu[1]);
+          radio.setAddress(message.joinResponseOK_getID());
           return true;
         }
-        else if(message.contenu[0] == (char) 0){
-          Serial.print("Reseau complet");
+        else if(message.isjoinResponseNotOK()){
+          Serial.print("Refus du maître.");
           exit(0);
         }
       }
@@ -134,7 +142,63 @@ bool Radio::chercherMaitre(){
   }
 }
 
-bool Radio::isJoinRequest(Message message){
-  return (message.longueur == 2) && (message.contenu[0] == (char) 118) && (message.contenu[1] == (char) 218);  
+void Radio::masterLoop(){
+    static int nbEsclaves = 0;    
+    int sender = receiveMessage(&message);
+    
+    if(sender>0)
+    {
+      // sender in list slave
+      if(sender >= FIRST_SLAVE_ID && sender < FIRST_SLAVE_ID + nbEsclaves){
+        if(message.isjoinRequest())
+          message.joinResponseOK(sender);
+        else{
+          // dialogue
+          
+        }
+      }
+      // sender not in list slave and list slave not full
+      else if(nbEsclaves < NUMBER_MAX_SLAVES){ 
+        if(message.isjoinRequest()){
+          message.joinResponseOK(FIRST_SLAVE_ID + nbEsclaves);
+          nbEsclaves++;
+        }
+        else
+          message.unknownDeviceResponse();
+      }
+      // sender not in list and list slave full
+      else{
+        if(message.isjoinRequest())
+          message.joinResponseNotOK();
+        else
+          message.unknownDeviceResponse();
+      }
+      
+      sendMessage(message, sender);      
+    }
+}
+
+bool Radio::slaveLoop(){
+    static int nbErreurs = 0;
+    static unsigned int loopCounter = 0;
+    
+    if (loopCounter > 2000)
+    {
+      loopCounter= 0;
+    
+      // On construit une trame arbitraire pour test
+      message.dataInformation(radio.readTemperature());
+  
+      if (!sendMessage(message, 1)){
+        if (nbErreurs > 3){
+          return false;
+        }
+        nbErreurs ++;
+      }
+      else
+        nbErreurs = 0;
+    }
+    return true;
+    loopCounter ++;
 }
 
