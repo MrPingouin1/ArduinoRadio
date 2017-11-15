@@ -8,6 +8,7 @@ class Message{
     
 		void printMessage();
     char joinResponseOK_getID();
+    char getData();
     
     void joinRequest();
     void joinResponseOK(char deviceID);

@@ -11,11 +11,6 @@ void setup() {
   while (!Serial);
   radio.start();
   etat = radio.chercherMaitre();
-  switch(etat){
-    case 0 : Serial.println("Je suis le maître."); break;
-    case 1 : Serial.println("Je suis un esclave."); break;
-    default : Serial.println("Je suis solitaire."); break;
-  }
 }
 
 void loop() {

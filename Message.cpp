@@ -56,6 +56,7 @@ void Message::unknownDeviceResponse(){
   contenu[0] = 40;
   contenu[1] = 4; 
   longueur = 2;  
+  Serial.println("Ici");
 }
 
 bool Message::isunknownDeviceResponse(){
@@ -70,6 +71,11 @@ void Message::dataInformation(char data){
 
 bool Message::isdataInformation(){
   return longueur == 2 && contenu[0] == (char) 1;
+}
+
+char Message::getData(){
+  if(isdataInformation())
+    return contenu[1];
 }
 
 

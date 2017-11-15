@@ -123,21 +123,25 @@ unsigned char Radio::chercherMaitre(){
       if (sender == 1){
         if (message.isjoinResponseOK()){
           radio.setAddress(message.joinResponseOK_getID());
+          Serial.println("Je suis un esclave.");
           return (unsigned char) 1;
         }
         else if(message.isjoinResponseNotOK()){
-          Serial.println("Refus du maître.");
+          Serial.print("Refus du maître : ");
+          Serial.println("Je suis solitaire.");
           return (unsigned char) 2;
         }
       }
       loopCounter ++;
       delay(1);
     }
-    Serial.println("Ignorer par le maître.");
+    Serial.print("Ignorer par le maître : ");
+    Serial.println("Je suis solitaire.");
     return (unsigned char) 2;
   }
   else{    
     radio.setAddress(MASTER_ID);
+    Serial.println("Je suis le maître.");
     return (unsigned char) 0;
   }
 }
@@ -152,9 +156,17 @@ void Radio::masterLoop(){
       if(sender >= FIRST_SLAVE_ID && sender < FIRST_SLAVE_ID + nbEsclaves){
         if(message.isjoinRequest())
           message.joinResponseOK(sender);
-        else{
+        else if (message.isdataInformation()){
           // dialogue
-          
+          Serial.print("Température de ");
+          Serial.print(sender);
+          Serial.print(" est de ");
+          Serial.println((unsigned char) message.getData(), DEC);
+          return;
+        }
+        else{
+          Serial.println("Message innatendu");
+          return;
         }
       }
       // sender not in list slave and list slave not full
@@ -180,7 +192,12 @@ void Radio::masterLoop(){
 
 bool Radio::slaveLoop(unsigned int loopCounter){
     static int nbErreurs = 0;
-    
+    int sender = receiveMessage(&message);
+    if (sender ==1){
+      if (message.isunknownDeviceResponse()){
+        return false;
+      }
+    }
     if (loopCounter > 2000)
     {
       // On construit une trame arbitraire pour test
@@ -199,9 +216,15 @@ bool Radio::slaveLoop(unsigned int loopCounter){
 }
 
 bool Radio::localLoop(unsigned int loopCounter){
-  if (loopCounter > 2000)
+  static int nbTours = 0;
+  if (loopCounter > 2000){
     Serial.println(radio.readTemperature());
+    nbTours ++;
+  }
 
-  return false;
+  if (nbTours > 3){
+    return false;
+  }
+  return true;
 }
 
