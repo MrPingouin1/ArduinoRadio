@@ -17,7 +17,7 @@ void loop() {
   static unsigned int loopCounter = 0;
 
   switch(etat){
-    case 0 : radio.masterLoop(); break;
+    case 0 : radio.masterLoop(loopCounter); break;
     case 1 : 
       if (!radio.slaveLoop(loopCounter))
         etat = radio.chercherMaitre();

@@ -146,8 +146,12 @@ unsigned char Radio::chercherMaitre(){
   }
 }
 
-void Radio::masterLoop(){
-    static int nbEsclaves = 0;    
+void Radio::masterLoop(unsigned int loopCounter){
+    static int nbEsclaves = 0;
+    if (loopCounter > 2000){
+      Serial.print("Ma température est de ");
+      Serial.println(radio.readTemperature());
+    }
     int sender = receiveMessage(&message);
     
     if(sender>0)
@@ -167,6 +171,7 @@ void Radio::masterLoop(){
         else{
           Serial.println("Message innatendu");
           return;
+          
         }
       }
       // sender not in list slave and list slave not full

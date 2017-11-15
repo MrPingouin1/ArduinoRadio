@@ -20,7 +20,7 @@ class Radio{
     
     bool slaveLoop(unsigned int);
     bool localLoop(unsigned int);
-    void masterLoop();
+    void masterLoop(unsigned int);
 };    
 
 #endif    
