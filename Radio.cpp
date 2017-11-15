@@ -106,7 +106,7 @@ uint8_t Radio::receiveMessage (Message *message){
     Serial.print("Message ");
     message->printMessage();   
     Serial.print(" reçu de ");
-    Serial.print(sender);  
+    Serial.println(sender);  
   } 
   return sender;
 }
@@ -127,13 +127,14 @@ bool Radio::chercherMaitre(){
           return true;
         }
         else if(message.isjoinResponseNotOK()){
-          Serial.print("Refus du maître.");
+          Serial.println("Refus du maître.");
           exit(0);
         }
       }
       loopCounter ++;
       delay(1);
     }
+    Serial.println("Ignorer par le maître.");
     exit(0);
   }
   else{    
