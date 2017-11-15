@@ -218,11 +218,13 @@ bool Radio::slaveLoop(unsigned int loopCounter){
 bool Radio::localLoop(unsigned int loopCounter){
   static int nbTours = 0;
   if (loopCounter > 2000){
+    Serial.print("Ma température est de ");
     Serial.println(radio.readTemperature());
     nbTours ++;
   }
 
   if (nbTours > 3){
+    nbTours = 0;
     return false;
   }
   return true;
