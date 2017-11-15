@@ -24,7 +24,7 @@
 
 // THIS NODE
 #define FIRST_SLAVE_ID 11
-#define NUMBER_MAX_SLAVES 10
+#define NUMBER_MAX_SLAVES 2
 #define NODEID FIRST_SLAVE_ID + NUMBER_MAX_SLAVES
 
 RFM69 Radio::radio = RFM69(RFM69_CS, RFM69_IRQ, IS_RFM69HCW, RFM69_IRQN);
@@ -106,12 +106,12 @@ uint8_t Radio::receiveMessage (Message *message){
     Serial.print("Message ");
     message->printMessage();   
     Serial.print(" reçu de ");
-    Serial.println(sender);  
+    Serial.println(sender);
   } 
   return sender;
 }
 
-bool Radio::chercherMaitre(){
+unsigned char Radio::chercherMaitre(){
   int loopCounter = 0;
   int sender;
 
@@ -122,24 +122,23 @@ bool Radio::chercherMaitre(){
       sender = receiveMessage(&message);
       if (sender == 1){
         if (message.isjoinResponseOK()){
-          message.printMessage();
           radio.setAddress(message.joinResponseOK_getID());
-          return true;
+          return (unsigned char) 1;
         }
         else if(message.isjoinResponseNotOK()){
           Serial.println("Refus du maître.");
-          exit(0);
+          return (unsigned char) 2;
         }
       }
       loopCounter ++;
       delay(1);
     }
     Serial.println("Ignorer par le maître.");
-    exit(0);
+    return (unsigned char) 2;
   }
   else{    
     radio.setAddress(MASTER_ID);
-    return false;
+    return (unsigned char) 0;
   }
 }
 
@@ -179,14 +178,11 @@ void Radio::masterLoop(){
     }
 }
 
-bool Radio::slaveLoop(){
+bool Radio::slaveLoop(unsigned int loopCounter){
     static int nbErreurs = 0;
-    static unsigned int loopCounter = 0;
     
     if (loopCounter > 2000)
     {
-      loopCounter= 0;
-    
       // On construit une trame arbitraire pour test
       message.dataInformation(radio.readTemperature());
   
@@ -200,6 +196,12 @@ bool Radio::slaveLoop(){
         nbErreurs = 0;
     }
     return true;
-    loopCounter ++;
+}
+
+bool Radio::localLoop(unsigned int loopCounter){
+  if (loopCounter > 2000)
+    Serial.println(radio.readTemperature());
+
+  return false;
 }
 

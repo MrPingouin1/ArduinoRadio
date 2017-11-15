@@ -10,7 +10,7 @@ class Radio{
     
   public:
     void start();
-    bool chercherMaitre();
+    unsigned char chercherMaitre();
     void printMessage();
     void blinkLED(byte PIN, byte DELAY_MS, byte loops);
     bool sendMessage(Message message, int receiver);
@@ -18,7 +18,8 @@ class Radio{
     int readTemperature();
     bool isJoinRequest(Message message);
     
-    bool slaveLoop();
+    bool slaveLoop(unsigned int);
+    bool localLoop(unsigned int);
     void masterLoop();
 };    
 

@@ -5,30 +5,37 @@
 
 Radio radio = Radio();
 
-bool isMaster;
+unsigned char etat;
 
 void setup() {
   while (!Serial);
   radio.start();
-  isMaster = !radio.chercherMaitre();
-  if(isMaster){
-    Serial.println("Je suis le maître.");
+  etat = radio.chercherMaitre();
+  switch(etat){
+    case 0 : Serial.println("Je suis le maître."); break;
+    case 1 : Serial.println("Je suis un esclave."); break;
+    default : Serial.println("Je suis solitaire."); break;
   }
-  else
-    Serial.println("Je suis un esclave.");
 }
 
 void loop() {
-  static int sender;
-  
-  if(isMaster){
-    radio.masterLoop();
-  }
-  else{
-    if (!radio.slaveLoop())
-      isMaster = !radio.chercherMaitre();
-  }
+  static unsigned int loopCounter = 0;
 
+  switch(etat){
+    case 0 : radio.masterLoop(); break;
+    case 1 : 
+      if (!radio.slaveLoop(loopCounter))
+        etat = radio.chercherMaitre();
+      break;
+    default : 
+    if (!radio.localLoop(loopCounter))
+        etat = radio.chercherMaitre();
+      break;
+  }
+  
+  if (loopCounter > 2000)
+    loopCounter = 0;
+  loopCounter ++;
   Serial.flush();  
   delay(1);
 }
