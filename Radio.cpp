@@ -112,10 +112,16 @@ bool Radio::chercherMaitre(){
   if (sendMessage(message, MASTER_ID)){
     while (loopCounter < 2000){
       sender = receiveMessage(&message);
-      if (sender == 1 && message.longueur == 2 && message.contenu[0] == (char) 1){
-        message.printMessage();
-        radio.setAddress(message.contenu[1]);
-        return true;
+      if (sender == 1 && message.longueur == 2){
+        if (message.contenu[0] == (char) 1){
+          message.printMessage();
+          radio.setAddress(message.contenu[1]);
+          return true;
+        }
+        else if(message.contenu[0] == (char) 0){
+          Serial.print("Reseau complet");
+          exit(0);
+        }
       }
       loopCounter ++;
       delay(1);

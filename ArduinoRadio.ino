@@ -3,7 +3,10 @@
 #include <RFM69.h>
 #include <SPI.h>
 
-#define NODEID 3525
+
+#define FIRST_SLAVE_ID 11
+#define NUMBER_MAX_SLAVES 10
+#define NODEID FIRST_SLAVE_ID + NUMBER_MAX_SLAVES
 
 Radio radio = Radio();
 Message message = Message();
@@ -47,27 +50,62 @@ void loop() {
       }
       else
         nbErreurs = 0;
-    }    
+    }
   }
-  else{    
-    static int listeEsclaves[10];
+  else{
     static int nbEsclaves = 0;
     
     sender = radio.receiveMessage(&message);
     if(sender>0)
     {
-      if(sender not in && liste n'est full){        
+      // sender in list slave
+      if(sender >= FIRST_SLAVE_ID && sender < FIRST_SLAVE_ID + nbEsclaves){
         if(radio.isJoinRequest(message)){
           message.contenu[0] = 1;
-          message.contenu[1] = nbEsclaves + 11; 
+          message.contenu[1] = sender; 
           message.longueur = 2;
           radio.sendMessage(message, sender);
-          listeEsclaves[nbEsclaves]=nbEsclaves + 11;
-          nbEsclaves++;
+        }
+        else{
+          // dialogue
+          
         }
       }
+      // sender not in list slave and list slave not full
+      else if(nbEsclaves < NUMBER_MAX_SLAVES){ 
+        if(radio.isJoinRequest(message)){
+          // On ajoute l'esclave en lui envoyant son nouvel ID
+          message.contenu[0] = 1;
+          message.contenu[1] = FIRST_SLAVE_ID + nbEsclaves; 
+          message.longueur = 2;
+          if (radio.sendMessage(message, sender)){
+            nbEsclaves++;
+          }
+        }
+        else{
+          // On lui demande d'envoyer une join request
+          message.contenu[0] = 118;
+          message.contenu[1] = 0; 
+          message.longueur = 2;
+          radio.sendMessage(message, sender);
+        }
+      }
+      // sender not in list and list slave full
       else{
-        // je suis pas ton pote
+        if(radio.isJoinRequest(message)){
+          // On lui dit qu'on est complet
+          message.contenu[0] = 0;
+          message.contenu[1] = 0; 
+          message.longueur = 2;
+          radio.sendMessage(message, sender);
+        }
+        else{
+          // On lui demande d'envoyer une join request (même si on est complet)
+          message.contenu[0] = 118;
+          message.contenu[1] = 0; 
+          message.longueur = 2;
+          radio.sendMessage(message, sender);
+        }        
       }      
     }
   }
